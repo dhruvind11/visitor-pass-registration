@@ -5,25 +5,35 @@ import { Button } from "@/components/ui/button"
 import { Download, Share2, ArrowLeft, CheckCircle2 } from "lucide-react"
 import type { VisitorData } from "@/app/page"
 import { QRCodeCanvas } from "qrcode.react"
+import { toPng } from "html-to-image"
 
 export function VisitorPass({ visitor, onReset }: { visitor: VisitorData; onReset: () => void }) {
   const passRef = useRef<HTMLDivElement>(null)
   const qrRef = useRef<HTMLDivElement>(null)
   const [isDownloading, setIsDownloading] = useState(false)
 
-  const downloadPass = () => {
-    if (!qrRef.current) return
-    const canvas = qrRef.current.querySelector("canvas")
-    if (!canvas) return
+  const downloadPass = async () => {
+    if (!passRef.current) return
     setIsDownloading(true)
 
     try {
+      const rect = passRef.current.getBoundingClientRect()
+      const dataUrl = await toPng(passRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
+        width: rect.width,
+        height: rect.height,
+        style: {
+          transform: 'none',
+          margin: '0',
+        },
+      })
       const link = document.createElement("a")
-      link.download = `qr-${visitor.visitorId}.png`
-      link.href = canvas.toDataURL("image/png")
+      link.download = `visitor-pass-${visitor.visitorId}.png`
+      link.href = dataUrl
       link.click()
     } catch (err) {
-      console.error("Failed to download QR code:", err)
+      console.error("Failed to download pass:", err)
     } finally {
       setIsDownloading(false)
     }
@@ -53,7 +63,7 @@ export function VisitorPass({ visitor, onReset }: { visitor: VisitorData; onRese
           <div className="p-8 space-y-8 text-center bg-linear-to-b from-white to-slate-50">
             {/* Main Info */}
             <div className="space-y-2">
-              <h3 className="text-2xl font-black leading-tight tracking-tight">
+              <h3 className="text-2xl font-black leading-tight tracking-tight break-words overflow-hidden">
                 {visitor.title} {visitor.firstName} {visitor.lastName}
               </h3>
               <div className="space-y-1">
@@ -68,14 +78,6 @@ export function VisitorPass({ visitor, onReset }: { visitor: VisitorData; onRese
                 value={visitor.visitorId}
                 size={140}
                 level="H"
-                imageSettings={{
-                  src: "/abstract-logo.png",
-                  x: undefined,
-                  y: undefined,
-                  height: 30,
-                  width: 30,
-                  excavate: true,
-                }}
               />
             </div>
 

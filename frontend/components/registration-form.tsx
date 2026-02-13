@@ -55,7 +55,7 @@ export function RegistrationForm({ onSuccess }: { onSuccess: (data: VisitorData)
         body: JSON.stringify(values),
       })
 
-      const data = await response.json()
+      const {data} = await response.json()
 
       if (!response.ok) {
         throw new Error(data.message || "Registration failed")
@@ -65,10 +65,10 @@ export function RegistrationForm({ onSuccess }: { onSuccess: (data: VisitorData)
         title: "Registration successful!",
         description: "Your visitor pass has been generated.",
       })
-
+     
       const newVisitor: VisitorData = {
         ...values,
-        id: data.visitorId || data.id,
+        visitorId: data.visitorId || data.id,
         registrationDate: new Date().toLocaleDateString(),
       }
 
